@@ -1,19 +1,28 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 )
 
-var customTransport = http.DefaultClient.Transport
+var customTransport = http.DefaultTransport
 
 func handleRequest(w http.ResponseWriter, r *http.Request) {
 	
-	targetURL := r.URL
-	proxyReq, err := http.NewRequest(r.Method, targetURL.String(), r.Body)
-
+	targetURL, err := url.Parse("http://localhost:8080" + r.URL.String())
 	if err != nil {
+		log.Printf("Error parsing target URL %v", err)
+		return
+	}
+
+	log.Printf("Received API response %v %v", r.Method, r.URL)
+
+	proxyReq, err := http.NewRequest(r.Method, targetURL.String(), r.Body)
+	if err != nil {
+		log.Printf("Error creating API response %v", err)
 		http.Error(w, "There's an error creating the proxy request", http.StatusInternalServerError)
 		return
 	}
@@ -24,9 +33,12 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	fmt.Println(proxyReq.Header)
+
 	res, err := customTransport.RoundTrip(proxyReq)
 
 	if err != nil {
+		log.Printf("Error sending API response %v", err)
 		http.Error(w, "There's an error sending proxy request", http.StatusInternalServerError)
 		return
 	}
@@ -46,11 +58,11 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 func main() {
 	
 	server := http.Server {
-		Addr: ":8080",
+		Addr: ":8081",
 		Handler: http.HandlerFunc(handleRequest), 
 	}
 
-	log.Println("Starting proxy server on :8080")
+	log.Println("Starting proxy server on :8081")
 	err := server.ListenAndServe()
 	if err != nil {
 		log.Fatal("Error starting proxy server", err)
