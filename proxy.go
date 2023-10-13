@@ -8,10 +8,10 @@ import (
 	"net/url"
 )
 
-var customTransport = http.DefaultTransport
-
 func handleRequest(w http.ResponseWriter, r *http.Request) {
 	
+	var customTransport = http.DefaultTransport
+
 	targetURL, err := url.Parse("http://localhost:8080" + r.URL.String())
 	if err != nil {
 		log.Printf("Error parsing target URL %v", err)
