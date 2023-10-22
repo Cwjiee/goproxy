@@ -34,6 +34,8 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(proxyReq.Header)
+	proxyReq.Header.Set("User-Agent", "Anonymous")
+	fmt.Println(proxyReq.Header)
 
 	res, err := customTransport.RoundTrip(proxyReq)
 
