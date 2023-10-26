@@ -5,16 +5,18 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"net/url"
+
+	"github.com/Cwjiee/goproxy/routes"
 )
 
 func handleRequest(w http.ResponseWriter, r *http.Request) {
 	
 	var customTransport = http.DefaultTransport
 
-	targetURL, err := url.Parse("http://localhost:8080" + r.URL.String())
+	targetURL, err := routes.CustomRoutes(r, w)
 	if err != nil {
-		log.Printf("Error parsing target URL %v", err)
+		log.Printf("Error routing request URL %v", err)
+		http.Error(w, "Error routing request", http.StatusInternalServerError)
 		return
 	}
 
@@ -55,18 +57,4 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(res.StatusCode)
 
 	io.Copy(w, res.Body)
-}
-
-func main() {
-	
-	server := http.Server {
-		Addr: ":8081",
-		Handler: http.HandlerFunc(handleRequest), 
-	}
-
-	log.Println("Starting proxy server on :8081")
-	err := server.ListenAndServe()
-	if err != nil {
-		log.Fatal("Error starting proxy server", err)
-	}
 }
