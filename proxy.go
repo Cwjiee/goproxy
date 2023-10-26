@@ -9,11 +9,11 @@ import (
 	"github.com/Cwjiee/goproxy/routes"
 )
 
-func handleRequest(w http.ResponseWriter, r *http.Request) {
+func HandleRequest(w http.ResponseWriter, r *http.Request) {
 	
 	var customTransport = http.DefaultTransport
 
-	targetURL, err := routes.CustomRoutes(r, w)
+	targetURL, err := routes.CustomRoutes(r)
 	if err != nil {
 		log.Printf("Error routing request URL %v", err)
 		http.Error(w, "Error routing request", http.StatusInternalServerError)
