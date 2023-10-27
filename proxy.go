@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/Cwjiee/goproxy/middleware"
 	"github.com/Cwjiee/goproxy/routes"
 )
 
@@ -37,6 +38,7 @@ func HandleRequest(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(proxyReq.Header)
 	proxyReq.Header.Set("User-Agent", "Anonymous")
+	proxyReq.Header.Set("Content-Length", "1024")
 	fmt.Println(proxyReq.Header)
 
 	res, err := customTransport.RoundTrip(proxyReq)
@@ -54,7 +56,15 @@ func HandleRequest(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	res.Header.Set("Content-Length", "1024")
+	fmt.Println(res.ContentLength)
 	w.WriteHeader(res.StatusCode)
 
-	io.Copy(w, res.Body)
+	filteredBody, err := middleware.FilterContent(res.Body)
+	if err != nil {
+		log.Printf("Error censoring response body %v", err)
+		http.Error(w, "There's an error censoring the response", http.StatusInternalServerError)
+	}
+
+	io.Copy(w, filteredBody)
 }
