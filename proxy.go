@@ -36,10 +36,7 @@ func HandleRequest(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	fmt.Println(proxyReq.Header)
-	proxyReq.Header.Set("User-Agent", "Anonymous")
-	proxyReq.Header.Set("Content-Length", "1024")
-	fmt.Println(proxyReq.Header)
+	proxyReq.Header.Set("User-Agent", "Anonymous")	
 
 	res, err := customTransport.RoundTrip(proxyReq)
 
@@ -56,15 +53,17 @@ func HandleRequest(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	res.Header.Set("Content-Length", "1024")
-	fmt.Println(res.ContentLength)
-	w.WriteHeader(res.StatusCode)
-
-	filteredBody, err := middleware.FilterContent(res.Body)
+	filteredBody, contentLength, err := middleware.FilterContent(res.Body)
 	if err != nil {
 		log.Printf("Error censoring response body %v", err)
 		http.Error(w, "There's an error censoring the response", http.StatusInternalServerError)
 	}
+
+	fmt.Println(res.Request.UserAgent())
+
+	w.Header().Set("Content-Length", fmt.Sprintf("%d",contentLength))
+
+	w.WriteHeader(res.StatusCode)
 
 	io.Copy(w, filteredBody)
 }

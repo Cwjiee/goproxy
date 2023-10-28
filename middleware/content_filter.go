@@ -15,7 +15,7 @@ type CensorList struct {
 }
 
 
-func ParseJson(filepath string, body io.Reader) (*CensorList, error){
+func ParseJson(filepath string) (*CensorList, error){
 	file, err := os.Open(filepath)
 	if err != nil {
 		log.Fatal("Error opening json file")
@@ -37,22 +37,25 @@ func ParseJson(filepath string, body io.Reader) (*CensorList, error){
 	return &censorList, nil
 }
 
-func FilterContent(body io.Reader) (io.Reader, error){
+func FilterContent(body io.Reader) (io.Reader,int, error){
 	bodyBytes, err := handlers.ReadResponse(body)
 	if err != nil {
-		return nil, err	
+		return nil, 0, err	
 	}
 
-	data, err := ParseJson("config/filter_content.json", body)
+	data, err := ParseJson("config/filter_content.json")
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	var censorList []string = data.CensorList
 
+	filteredContent := string(bodyBytes)
 	for _, word := range censorList {
-		bodyBytes = []byte(strings.ReplaceAll(string(bodyBytes), word, "****"))
+		filteredContent = strings.ReplaceAll(filteredContent, word, "****")
 	}
 
-	return strings.NewReader(string(bodyBytes)), nil
+	contentLength := len(filteredContent)
+
+	return strings.NewReader(filteredContent), contentLength, nil
 }
