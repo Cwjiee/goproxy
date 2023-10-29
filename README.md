@@ -9,7 +9,7 @@ A proxy server built with golang
 - manipulate headers
   - manipulate user agent in request to enhance user privacy and anonymity
 - content filtering
-  - censors positive words and changing it to "****"
+  - censors positive words and replaces it to "****"
 
 # testing
 - used a [to-do list api](https://github.com/Cwjiee/todo-list-api) to serve as backend server
